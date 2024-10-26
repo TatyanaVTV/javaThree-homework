@@ -1,6 +1,7 @@
 package entity;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 public class Task {
   private Integer id;
@@ -11,7 +12,7 @@ public class Task {
   public Task(String title, Boolean finished, LocalDateTime createdDate) {
     this.title = title;
     this.finished = finished;
-    this.createdDate = createdDate;
+    this.createdDate = createdDate.truncatedTo(ChronoUnit.MICROS);
   }
 
   public Integer getId() {
@@ -43,6 +44,6 @@ public class Task {
   }
 
   public void setCreatedDate(LocalDateTime createdDate) {
-    this.createdDate = createdDate;
+    this.createdDate = createdDate.truncatedTo(ChronoUnit.MICROS);
   }
 }
