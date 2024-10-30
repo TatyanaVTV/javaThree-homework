@@ -1,55 +1,31 @@
-package dao;
+package ru.productstar.hw.dao;
 
-import com.opentable.db.postgres.embedded.EmbeddedPostgres;
-import entity.Task;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import ru.productstar.hw.configuration.TaskConfig;
+import ru.productstar.hw.entity.Task;
 
-import javax.sql.DataSource;
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@SpringBootTest(
+        properties = {"jdbcUrl=jdbc:h2:mem:db;DB_CLOSE_DELAY=-1"}
+)
+@ContextConfiguration(classes = TaskConfig.class)
+@ExtendWith(SpringExtension.class)
 class TaskDaoTest {
+    @Autowired
     private TaskDao taskDao;
-
-    @BeforeAll
-    public void setUp() throws IOException {
-        DataSource dataSource = EmbeddedPostgres
-                .builder()
-                .start()
-                .getPostgresDatabase();
-
-        initializeDb(dataSource);
-        taskDao = new TaskDao(dataSource);
-    }
 
     @BeforeEach
     public void beforeEach() {
         taskDao.deleteAll();
-    }
-
-    private void initializeDb(DataSource dataSource) {
-        try (InputStream inputStream = this.getClass().getResource("/initial.sql").openStream()) {
-            String sql = new String(inputStream.readAllBytes());
-            try (
-                    Connection connection = dataSource.getConnection();
-                    Statement statement = connection.createStatement()
-            ) {
-                statement.executeUpdate(sql);
-            }
-
-        } catch (IOException | SQLException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Test

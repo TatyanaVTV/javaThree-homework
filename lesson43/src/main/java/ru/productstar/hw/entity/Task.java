@@ -1,4 +1,4 @@
-package entity;
+package ru.productstar.hw.entity;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;

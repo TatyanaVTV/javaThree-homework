@@ -1,15 +1,19 @@
-package dao;
+package ru.productstar.hw.dao;
 
-import entity.Task;
+import ru.productstar.hw.entity.Task;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class TaskDao {
     private final DataSource dataSource;
 
+    @Autowired
     public TaskDao(DataSource dataSource) {
         this.dataSource = dataSource;
     }
@@ -62,21 +66,18 @@ public class TaskDao {
     public List<Task> findAll() {
         List<Task> tasks = new ArrayList<>();
         String sql = "SELECT task_id, title, finished, created_date FROM task ORDER BY task_id";
+
+        /**
+         * Using Statement cause of:
+         * Caused by: org.h2.jdbc.JdbcSQLNonTransientException: Данный метод не разрешен для PreparedStatement; используйте Statement.
+         * */
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(sql)
         ) {
-
             while (resultSet.next()) {
-                final Task task = new Task(
-                        resultSet.getString(2),
-                        resultSet.getBoolean(3),
-                        resultSet.getTimestamp(4).toLocalDateTime()
-                );
-                task.setId(resultSet.getInt(1));
-                tasks.add(task);
+                tasks.add(parseTaskFromResultSet(resultSet));
             }
-
         } catch (SQLException throwables) {
             throw new RuntimeException(throwables);
         }
@@ -84,6 +85,10 @@ public class TaskDao {
         return tasks;
     }
 
+    /**
+     * Using Statement cause of:
+     * Caused by: org.h2.jdbc.JdbcSQLNonTransientException: Данный метод не разрешен для PreparedStatement; используйте Statement.
+     * */
     public int deleteAll() {
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement()
@@ -114,14 +119,17 @@ public class TaskDao {
         }
     }
 
+    /**
+     * Using Statement cause of:
+     * Caused by: org.h2.jdbc.JdbcSQLNonTransientException: Данный метод не разрешен для PreparedStatement; используйте Statement.
+     * */
     public List<Task> findAllNotFinished() {
         List<Task> notFinishedTasks = new ArrayList<>();
+        String sql = "SELECT task_id, title, finished, created_date FROM task WHERE finished = false";
         try (Connection connection = dataSource.getConnection();
-             Statement statement = connection.createStatement()
+             Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery(sql)
         ) {
-            String sql = "SELECT task_id, title, finished, created_date FROM task WHERE finished = false";
-            ResultSet rs = statement.executeQuery(sql);
-
             while (rs.next()) {
                 notFinishedTasks.add(parseTaskFromResultSet(rs));
             }
